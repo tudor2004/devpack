@@ -1,15 +1,11 @@
 <?php
 
-namespace Tudors\Devpack;
+namespace Tudorica\Devpack;
 
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
-use Composer\Plugin\PluginEvents;
-use Composer\Plugin\PreFileDownloadEvent;
-use Composer\Util\Filesystem;
-use Composer\Util\RemoteFilesystem;
 
 class DevpackPlugin implements PluginInterface, EventSubscriberInterface
 {

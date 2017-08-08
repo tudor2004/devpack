@@ -6,10 +6,10 @@
   },
   "autoload": {
     "psr-4": {
-      "Tudors\\Devpack\\": "src/"
+      "Tudorica\\Devpack\\": "src/"
     }
   },
   "extra": {
-    "class": "Tudors\\Devpack\\DevpackPlugin"
+    "class": "Tudorica\\Devpack\\DevpackPlugin"
   }
 }
