@@ -1,0 +1,15 @@
+{
+  "name": "tudor2004/devpack",
+  "type": "composer-plugin",
+  "require": {
+    "composer-plugin-api": "^1.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Tudors\\Devpack\\": "src/"
+    }
+  },
+  "extra": {
+    "class": "Tudors\\Devpack\\DevpackPlugin"
+  }
+}
