@@ -3,9 +3,12 @@
 namespace Tudorica\Devpack;
 
 use Composer\Composer;
+use Composer\EventDispatcher\Event;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
+use Composer\Plugin\PluginEvents;
 use Composer\Plugin\PluginInterface;
+use Composer\Factory;
 
 class DevpackPlugin implements PluginInterface, EventSubscriberInterface
 {
@@ -52,6 +55,78 @@ class DevpackPlugin implements PluginInterface, EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return array(
+            PluginEvents::INIT => array(
+                array('onInit', 0)
+            ),
         );
+    }
+
+    /**
+     * Replace remote file system on S3 protocol download
+     *
+     * @param Event $event
+     */
+    public function onInit(Event $event)
+    {
+        $composerConfig = $this->composer->getConfig();
+
+        $packagesDir = $composerConfig->get('vendor-dir') . '/../packages/plentymarkets/';
+
+        if (!is_dir($packagesDir))
+        {
+            return;
+        }
+
+
+        $it = new \RecursiveDirectoryIterator($packagesDir, \RecursiveDirectoryIterator::SKIP_DOTS);
+
+        $localComposer = [
+            'require'      => '',
+        ];
+
+        foreach ($it as $dir)
+        {
+            if ($dir->isDir())
+            {
+                $localComposer['require']['plentymarkets/' . $dir->getFilename()] = '*';
+                /*
+								$localComposer['repositories'][] = [
+									'type' => 'git',
+									'url'  => $dir->getPathname(),
+								];*/
+            }
+        }
+
+        $composerLocalPath = $composerConfig->get('vendor-dir') . '/../packages/composer.local.json';
+
+        file_put_contents($composerLocalPath, json_encode($localComposer, JSON_UNESCAPED_SLASHES));
+
+        if (!file_exists($composerLocalPath))
+        {
+            return;
+        }
+
+        $composer = $this->composer;
+
+        $factory = new Factory();
+
+        $localComposer = $factory->createComposer(
+            $this->io,
+            $composerLocalPath,
+            true,
+            null,
+            false
+        );
+
+        // Merge repositories.
+        $repositories = array_merge($composer->getPackage()->getRepositories(), $localComposer->getPackage()->getRepositories());
+        if (method_exists($composer->getPackage(), 'setRepositories'))
+        {
+            $composer->getPackage()->setRepositories($repositories);
+        }
+
+        // Merge requirements.
+        $requires = array_merge($composer->getPackage()->getRequires(), $localComposer->getPackage()->getRequires());
+        $composer->getPackage()->setRequires($requires);
     }
 }
